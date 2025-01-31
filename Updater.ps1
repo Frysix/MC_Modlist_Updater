@@ -75,3 +75,13 @@ if (-not (test-path -path "$env:SYSTEMDRIVE\Frysix_MC_updater")) {
 set-location -path "$env:SYSTEMDRIVE\Frysix_MC_updater"
 
 $UpdateInfo = Get-UpdateInfo
+
+$Links = $UpdateInfo["Links"]
+
+foreach ($link in $Links.GetEnumerator()) {
+
+    write-host $link
+
+}
+
+pause
