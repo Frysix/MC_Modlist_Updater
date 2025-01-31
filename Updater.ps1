@@ -66,21 +66,13 @@ function Get-UpdateInfo {
 }
 
 #Beginning of execution
-if (-not (test-path -path "$env:SYSTEMDRIVE\Frysix_MC_updater")) {
-
-    new-item -path "$env:SYSTEMDRIVE\Frysix_MC_updater" -type Directory -force
-
-}
-
-set-location -path "$env:SYSTEMDRIVE\Frysix_MC_updater"
-
 $UpdateInfo = Get-UpdateInfo
 
 $Links = $UpdateInfo["Links"]
 
 foreach ($link in $Links.GetEnumerator()) {
 
-    write-host $link.name
+    write-host $link.value
 
 }
 
