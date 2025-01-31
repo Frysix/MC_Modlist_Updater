@@ -80,7 +80,7 @@ $Links = $UpdateInfo["Links"]
 
 foreach ($link in $Links.GetEnumerator()) {
 
-    write-host $link
+    write-host $link.name
 
 }
 
