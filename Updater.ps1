@@ -7,7 +7,11 @@
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 #Declare Vars
+$Paths = @{
 
+    profiles = "$env:APPDATA\Roaming\ModrinthApp\profiles"
+
+}
 
 #Define Functions
 function Get-UpdateInfo {
@@ -68,12 +72,39 @@ function Get-UpdateInfo {
 #Beginning of execution
 $UpdateInfo = Get-UpdateInfo
 
-$Links = $UpdateInfo["Links"]
+#Creating main UI
+$MainGUI = New-Object system.Windows.Forms.Form
+$MainGUI.ClientSize = New-Object System.Drawing.Point(848,425)
+$MainGUI.text = "Frysix's Modlist Updater"
+$MainGUI.TopMost = $true
+$MainGUI.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#424141")
+$MainGUI.FormBorderStyle = 'FixedSingle'
+$MainGUI.MaximizeBox = $false
 
-foreach ($link in $Links.GetEnumerator()) {
+#Look if there is profiles in appdata
+if (test-path -path $Paths.profiles) {
 
-    write-host $link.value
+    $ProfileFolders = Get-ChildItem -path $Paths.profiles
+
+    $LocA = 115
+    $LocB = 10
+
+    foreach ($file in $ProfileFolders.GetEnumerator()) {
+
+        $TempButton = New-Object system.Windows.Forms.Button
+        $TempButton.text = $file.name
+        $TempButton.width = 30
+        $TempButton.height = 30
+        $TempButton.location = New-Object System.Drawing.Point($LocA,$LocB)
+        $TempButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+        $TempButton.ForeColor = [System.Drawing.ColorTranslator]::FromHtml("#ffffff")
+
+        $MainGUI.controls.AddRange(@($TempButton))
+
+    }
 
 }
 
-pause
+$MainGUI.controls.AddRange(@())
+
+[void]$MainGUI.ShowDialog()
