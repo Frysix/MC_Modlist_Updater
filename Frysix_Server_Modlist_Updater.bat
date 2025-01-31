@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-powershell -executionpolicy bypass -command "function Get-AdminStatus {if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {return $false} else {return $true}} $Status = Get-AdminStatus; $Status | out-file -filepath """%~dp0\Status.txt""" -encoding ascii; if (-not ($Status)) {start-process -filepath """%~dp0\Frysix`s_Server_Modlist_Updater.bat""" -verb runas}"
+powershell -executionpolicy bypass -command "function Get-AdminStatus {if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {return $false} else {return $true}} $Status = Get-AdminStatus; $Status | out-file -filepath """%~dp0\Status.txt""" -encoding ascii; if (-not ($Status)) {start-process -filepath """%~dp0\Frysix_Server_Modlist_Updater.bat""" -verb runas}"
 for /f "usebackq delims=" %%a in ("%~dp0\Status.txt") do (set "Status=%%a")
 if "!Status!"=="False" (goto end)
 powershell -executionpolicy bypass -command "if (test-path -path """%~dp0\Status.txt""") {remove-item -path """%~dp0\Status.txt""" -recurse -force}"
