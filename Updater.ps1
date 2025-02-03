@@ -145,7 +145,7 @@ function Get-UpdateInfo {
 }
 
 #Beginning of execution
-if (test-path -path $Paths.temp) {
+if (-not (test-path -path $Paths.temp)) {
 
     new-item -path $Paths.temp -itemtype Directory -force
 
