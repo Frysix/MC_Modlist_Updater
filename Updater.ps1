@@ -6,34 +6,96 @@
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-#Declare Vars
+#Declare Vars with embedded information
 $Paths = @{
 
+    temp = "$psscriptroot\temp"
     profiles = "$env:APPDATA\Roaming\ModrinthApp\profiles"
+    infoini = "$psscriptroot\temp\info.ini"
+
+}
+$Links = @{
+
+    infoini = "https://raw.githubusercontent.com/Frysix/MC_Modlist_Updater/refs/heads/main/info.ini"
 
 }
 
 #Define Functions
-function Get-UpdateInfo {
+function Show-InformationBox {
 
-    if (test-path -path "$psscriptroot\info.ini") {
+    [cmdletbinding()]
 
-        remove-item -path "$psscriptroot\info.ini" -recurse -force
+	param (
+	
+		[parameter(mandatory=$true)]
+		[string]$message
+
+	)
+
+    [System.Windows.MessageBox]::Show($message, "Frysix's Modpack Updater", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information, [System.Windows.MessageBoxResult]::None, [System.Windows.MessageBoxOptions]::DefaultDesktopOnly)
+
+}
+function Get-FolderLocation {
+
+    [cmdletbinding()]
+
+	param (
+	
+		[parameter(mandatory=$true)]
+		[string]$description,
+
+        [parameter(Mandatory=$false)]
+        [string]$startpath
+
+	)
+
+    Add-Type -AssemblyName System.Windows.Forms
+
+    $folderdialog = new-object System.Windows.Forms.FolderBrowserDialog
+    $folderdialog.Description = $description
+
+    if ($startpath -and (Test-Path $startpath -PathType Container)) {
+
+        $folderdialog.SelectedPath = $startpath
 
     }
 
-    Invoke-Webrequest -uri "https://raw.githubusercontent.com/Frysix/MC_Modlist_Updater/refs/heads/main/info.ini" -outfile "$psscriptroot\info.ini"
+    $resultdialog = $folderdialog.Showdialog()
 
-    if (-not (test-path -path "$psscriptroot\info.ini")) {
+    if ($resultdialog -eq [System.Windows.Forms.Dialogresult]::OK) {
 
-        throw "INI file not found: info.ini"
+        $selectedpath = $folderdialog.Selectedpath
+
+        return $selectedpath
+
+    } else {
+
+        return $false
+
+    }
+
+}
+function Get-IniFile {
+
+    [cmdletbinding()]
+
+    param(
+
+        [parameter(mandatory=$true)]
+        [string]$IniPath
+        
+    )
+
+    if (-not (test-path -path $IniPath)) {
+
+        throw "INI file not found: $IniPath"
 
     }
 
     $info = @{}
     $section = ""
 
-    foreach ($line in Get-Content "$psscriptroot\info.ini") {
+    foreach ($line in Get-Content $IniPath) {
 
         $line = $line.Trim()
 
@@ -68,43 +130,70 @@ function Get-UpdateInfo {
     return $info
 
 }
+function Get-UpdateInfo {
+
+    if (test-path -path $Paths.infoini) {
+
+        remove-item -path $Paths.infoini -recurse -force
+
+    }
+
+    Invoke-Webrequest -uri $Links.infoini -outfile $Paths.infoini
+
+    return Get-IniFile -IniPath $Paths.infoini
+
+}
 
 #Beginning of execution
-$UpdateInfo = Get-UpdateInfo
+if (test-path -path $Paths.temp) {
 
-#Creating main UI
-$MainGUI = New-Object system.Windows.Forms.Form
-$MainGUI.ClientSize = New-Object System.Drawing.Point(848,425)
-$MainGUI.text = "Frysix's Modlist Updater"
-$MainGUI.TopMost = $true
-$MainGUI.BackColor = [System.Drawing.ColorTranslator]::FromHtml("#424141")
-$MainGUI.FormBorderStyle = 'FixedSingle'
-$MainGUI.MaximizeBox = $false
+    new-item -path $Paths.temp -itemtype Directory -force
+
+}
+
+$UpdateInfo = Get-UpdateInfo
 
 #Look if there is profiles in appdata
 if (test-path -path $Paths.profiles) {
 
     $ProfileFolders = Get-ChildItem -path $Paths.profiles
 
-    $LocA = 115
-    $LocB = 10
+    $MatchingFolders = @{}
 
-    foreach ($file in $ProfileFolders.GetEnumerator()) {
+    foreach ($folder in $ProfileFolders.GetEnumerator()) {
 
-        $TempButton = New-Object system.Windows.Forms.Button
-        $TempButton.text = $file.name
-        $TempButton.width = 30
-        $TempButton.height = 30
-        $TempButton.location = New-Object System.Drawing.Point($LocA,$LocB)
-        $TempButton.Font = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
-        $TempButton.ForeColor = [System.Drawing.ColorTranslator]::FromHtml("#ffffff")
+        if ($folder.name -match "Server Dude") {
 
-        $MainGUI.controls.AddRange(@($TempButton))
+            $MatchingFolders = $MatchingFolders + @{
+
+                $folder.name = $folder.key
+
+            }
+
+        }
 
     }
 
+    if ($MatchingFolders.Count -gt 0) {
+
+        $MatchingFolders.ChosenMatch = ""
+
+        foreach ($folder in $MatchingFolders.GetEnumerator()) {
+
+            if ($MatchingFolders.ChosenMatch -eq "") {
+
+                $MatchingFolders.ChosenMatch = $MatchingFolders.name
+
+            }
+
+        }
+
+    }
+
+} else {
+
+    Show-InformationBox -message "Impossible de trouver de profiles ModRinth dans le fichier AppData. Fait sur que Modrinth est installé et que tu a le profile du serveur installé!"
+
+    exit
+
 }
-
-$MainGUI.controls.AddRange(@())
-
-[void]$MainGUI.ShowDialog()
