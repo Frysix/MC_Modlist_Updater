@@ -53,15 +53,10 @@ function Get-UserConfirmation {
 	)
 
     $form = new-object System.Windows.Forms.Form
-    $form.Text = 'ezCMD'
+    $form.Text = "Frysix's Modlist Updater"
     $form.Size = new-object System.Drawing.Size(270,180)
     $form.MinimumSize = new-object System.Drawing.Size(270,180)
     $form.MaximumSize = new-object System.Drawing.Size(270,180)
-    if (test-path -path $scriptfiles.icon) {
-
-        $form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($scriptfiles.icon)
-
-    }
 
     $label1 = new-object System.Windows.Forms.Label
     $label1.Location = new-object System.Drawing.Point(40,15)
