@@ -7,6 +7,5 @@ powershell -executionpolicy bypass -command "if (test-path -path """%~dp0\Status
 powershell -executionpolicy bypass -command "if (test-path -path """%~dp0\Updater.ps1""") {remove-item -path """%~dp0\Updater.ps1""" -recurse -force}; function Get-InternetStatus {if (test-connection 'google.com' -count 1 -quiet) {return $true} else {return $false}}; while (-not (Get-InternetStatus)) {Write-Host 'Please Connect to internet to install'}; Invoke-Webrequest -uri 'https://raw.githubusercontent.com/Frysix/MC_Modlist_Updater/refs/heads/main/Updater.ps1' -outfile """%~dp0\Updater.ps1""";"
 start powershell -executionpolicy bypass -noexit -file "%~dp0\Updater.ps1" -verb runas 
 :end
-powershell -executionpolicy bypass -command "if (test-path -path """%~dp0\Updater.ps1""") {remove-item -path """%~dp0\Updater.ps1""" -recurse -force}"
 powershell -executionpolicy bypass -command "if (test-path -path """%~dp0\Status.txt""") {remove-item -path """%~dp0\Status.txt""" -recurse -force}"
 exit

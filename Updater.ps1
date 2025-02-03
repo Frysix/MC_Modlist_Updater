@@ -35,6 +35,83 @@ function Show-InformationBox {
     [System.Windows.MessageBox]::Show($message, "Frysix's Modpack Updater", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information, [System.Windows.MessageBoxResult]::None, [System.Windows.MessageBoxOptions]::DefaultDesktopOnly)
 
 }
+function Get-UserConfirmation {
+
+    [cmdletbinding()]
+
+	param (
+	
+		[parameter(mandatory=$false)]
+		[string]$text1,
+
+        [parameter(mandatory=$false)]
+		[string]$text2,
+
+        [parameter(mandatory=$false)]
+		[string]$text3
+
+	)
+
+    $form = new-object System.Windows.Forms.Form
+    $form.Text = 'ezCMD'
+    $form.Size = new-object System.Drawing.Size(270,180)
+    $form.MinimumSize = new-object System.Drawing.Size(270,180)
+    $form.MaximumSize = new-object System.Drawing.Size(270,180)
+    if (test-path -path $scriptfiles.icon) {
+
+        $form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($scriptfiles.icon)
+
+    }
+
+    $label1 = new-object System.Windows.Forms.Label
+    $label1.Location = new-object System.Drawing.Point(40,15)
+    $label1.Size = new-object System.Drawing.Size(280,20)
+    $label1.Text = $text1
+    $form.Controls.Add($label1)
+
+    $label2 = new-object System.Windows.Forms.Label
+    $label2.Location = new-object System.Drawing.Point(40,35)
+    $label2.Size = new-object System.Drawing.Size(280,20)
+    $label2.Text = $text2
+    $form.Controls.Add($label2)
+
+    $label3 = new-object System.Windows.Forms.Label
+    $label3.Location = new-object System.Drawing.Point(40,55)
+    $label3.Size = new-object System.Drawing.Size(280,20)
+    $label3.Text = $text3
+    $form.Controls.Add($label3)
+
+    $nobutton = new-object System.Windows.Forms.Button
+    $nobutton.Location = new-object System.Drawing.Size(30,100)
+    $nobutton.Size = new-object System.Drawing.Size(60,20)
+    $nobutton.Text = "No"
+    $form.Controls.Add($nobutton)
+
+    $yesbutton = New-Object System.Windows.Forms.Button
+    $yesbutton.Location = New-Object System.Drawing.Size(160,100)
+    $yesbutton.Size = New-Object System.Drawing.Size(60,20)
+    $yesbutton.Text = "Yes"
+    $form.Controls.Add($yesbutton)
+
+    $nobutton.Add_Click({
+
+        new-variable -name yesnoanswer -value $($false) -scope Script -force
+        $form.Close()
+
+    })
+
+    $yesbutton.Add_Click({
+
+        new-variable -name yesnoanswer -value $($true) -scope Script -force
+        $form.Close()
+
+    })
+
+    $form.Topmost = $true
+    $form.Add_Shown({$form.Activate()})
+    [void] $form.ShowDialog()
+
+}
 function Get-FolderLocation {
 
     [cmdletbinding()]
@@ -182,17 +259,113 @@ if (test-path -path $Paths.profiles) {
 
             if ($MatchingFolders.ChosenMatch -eq "") {
 
-                $MatchingFolders.ChosenMatch = $MatchingFolders.name
+                $MatchingFolders.ChosenMatch = $folder.name
 
             }
 
         }
 
+        if ($MatchingFolders.ChosenMatch -eq "") {
+
+            Show-InformationBox -message "An error ocurred! Match was counted but does not exist. Exiting..."
+
+            exit
+
+        }
+
+        Get-UserConfirmation -text2 "Folder: "$MatchingFolders.ChosenMatch" was chosen as the default profile." -text3 "Do you want to indicate manually where the folder is?"
+
+        if ($yesnoanswer) {
+
+            $Paths.WorkPath = Get-FolderLocation -description "Indicate the folder of the modlist you want to update." -startpath $Paths.profiles
+
+            if ($Paths.WorkPath -eq $false) {
+
+                Show-InformationBox -message "Canceled by User: User did not input any paths. Exiting..."
+
+                exit
+
+            } else {
+
+                if (test-path -path $Paths.WorkPath) {
+
+                    $ValidPathFound = $true
+
+                } else {
+
+                    Show-InformationBox -message "Canceled by User: User did not indicate any existing paths. Exiting..."
+
+                    exit
+
+                }
+
+            }
+
+        } else {
+
+            $Paths.WorkPath = $MatchingFolders.ChosenMatch
+
+            $ValidPathFound = $true
+
+        }
+
+    } else {
+
+        Get-UserConfirmation -text2 "No folder matches the search parameters." -text3 "Do you want to indicate manually where the folder is?"
+
+        if ($yesnoanswer) {
+
+            $Paths.WorkPath = Get-FolderLocation -description "Indicate the folder of the modlist you want to update." -startpath $Paths.profiles
+
+            if ($Paths.WorkPath -eq $false) {
+
+                Show-InformationBox -message "Canceled by User: User did not input any paths. Exiting..."
+
+                exit
+
+            } else {
+
+                if (test-path -path $Paths.WorkPath) {
+
+                    $ValidPathFound = $true
+
+                } else {
+
+                    Show-InformationBox -message "Canceled by User: User did not indicate any existing paths. Exiting..."
+
+                    exit
+
+                }
+
+            }
+
+        } else {
+
+            Show-InformationBox -message "Canceled by User: Exiting..."
+
+            exit
+
+        }
+
+    }
+
+    #END OF CHECK
+    if ($ValidPathFound) {
+
+        Show-InformationBox -message $Paths.WorkPath
+
+        exit
+
+    } else {
+
+        Show-InformationBox -message "No valid paths found."
+
+        exit
     }
 
 } else {
 
-    Show-InformationBox -message "Impossible de trouver de profiles ModRinth dans le fichier AppData. Fait sur que Modrinth est installé et que tu a le profile du serveur installé!"
+    Show-InformationBox -message "Impossible to find ModRinth's AppData folder, please make sure it is properly installed first and that you downloaded the modlist mrpack file from the discord server. This utility should only be used to update an existing profile. Exiting..."
 
     exit
 
