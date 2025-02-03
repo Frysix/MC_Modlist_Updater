@@ -10,7 +10,7 @@
 $Paths = @{
 
     temp = "$psscriptroot\temp"
-    profiles = "$env:APPDATA\Roaming\ModrinthApp\profiles"
+    profiles = "$env:APPDATA\ModrinthApp\profiles"
     infoini = "$psscriptroot\temp\info.ini"
 
 }
