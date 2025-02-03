@@ -255,7 +255,7 @@ if (test-path -path $Paths.profiles) {
 
         $MatchingFolders.ChosenMatch = ""
 
-        foreach ($folder in $MatchingFolders.GetEnumerator()) {
+        foreach ($folder in $MatchingFolders.Count) {
 
             if ($MatchingFolders.ChosenMatch -eq "") {
 
@@ -273,7 +273,9 @@ if (test-path -path $Paths.profiles) {
 
         }
 
-        Get-UserConfirmation -text2 "Folder: "$MatchingFolders.ChosenMatch" was chosen as the default profile." -text3 "Do you want to indicate manually where the folder is?"
+        $MatchString = $MatchingFolders.ChosenMatch
+
+        Get-UserConfirmation -text2 "Folder: $MatchString was chosen as the default profile." -text3 "Do you want to indicate manually where the folder is?"
 
         if ($yesnoanswer) {
 
